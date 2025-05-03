@@ -66,5 +66,8 @@
         "onlyBuiltDependencies": [
             "esbuild"
         ]
+    },
+    "dependencies": {
+        "flowbite-svelte": "^0.48.6"
     }
 }
