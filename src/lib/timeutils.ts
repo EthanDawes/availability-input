@@ -1,9 +1,10 @@
-import { DAY, HOUR, MILLISECOND, SECOND, TIME_STEP } from "./units.js"
+import { DAY, HOUR, MILLISECOND, MINUTE, SECOND, TIME_STEP } from "./units.js"
 
 /** Date formatted in en-US locale, m/dd/yy. TODO: tighten this type */
 export type DateStr = `${number}/${number}/${number}` | string
 
-/** Minutes since epoch representing start and stop datetimes */
+/** Milliseconds since epoch representing start and stop datetimes. */
+// Using ms instead of minutes b/c even though I don't need ms precision, it is more standard, won't cause issues, and will be easier if consistent
 export type DatetimeRange = [number, number]
 
 /** Represents [Date (as ms since epoch), block idx since midnight] */
@@ -17,10 +18,10 @@ export function timeToInt(timeString: string) {
     return (Number(hours) + Number(ampm?.toLowerCase() === "pm") * 12) * HOUR + Number(minutes)
 }
 
-/** Converts minutes since midnight to "2:50 AM" or "15:43" */
+/** Converts milliseconds since midnight to "2:50 AM" or "15:43" */
 export function intToTime(midnightOffset: number, military = false) {
     let hours = Math.floor(midnightOffset / HOUR)
-    const minutes = midnightOffset % HOUR
+    const minutes = (midnightOffset % HOUR) / MINUTE
     const isPM = hours >= 12
     hours = military ? hours : isPM ? (hours % 13) + 1 : hours
     if (hours === 0 && !military) hours = 12
@@ -86,25 +87,22 @@ export function offsetDatetime(coord: Coord, offsetMin: number) {
 }
 
 /** Add the specified number of minutes to `date` copy & return it
- * @param date if number, will assume minutes
+ * @param date if number, will assume milliseconds
  * @param offsetMin minutes to add
  */
 export function offsetDate(date: Date | string | number, offsetMin: number) {
-    if (typeof date === "number") date /= MILLISECOND
     const dateObj = new Date(date)
-    return new Date(dateObj.getTime() + offsetMin / MILLISECOND)
+    return new Date(dateObj.getTime() - offsetMin * MINUTE)
 }
 
 /** Offsets all provided ranges by specified offset
- * @param ranges list of [start, stop] ranges (minutes since epoch)
+ * @param ranges list of [start, stop] ranges (ms since epoch)
  * @param offsetMin minutes to add
  */
-export function offsetRange(ranges: DatetimeRange[], offsetMin: number) {
+export function offsetRanges(ranges: DatetimeRange[], offsetMin: number) {
     return ranges.map(
         range =>
-            range.map(
-                timestamp => offsetDate(timestamp, offsetMin).getTime() * MILLISECOND,
-            ) as DatetimeRange,
+            range.map(timestamp => offsetDate(timestamp, offsetMin).getTime()) as DatetimeRange,
     )
 }
 

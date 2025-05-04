@@ -9,7 +9,7 @@
         intToTime,
         offsetDate,
         offsetDatetime,
-        offsetRange,
+        offsetRanges,
         rangesToDate,
         timeInRange,
     } from "./timeutils.js"
@@ -33,7 +33,7 @@
     let dates = rangesToDate(ranges)
     /** Dates in UTC format */
     const UTCDates = dates
-    $: dates = rangesToDate(offsetRange(ranges, -tzOffset))
+    $: dates = rangesToDate(offsetRanges(ranges, -tzOffset))
 
     /** Whether to allow input. Controls manual mode, not viewing mode */
     export let isDisabled = false
@@ -85,7 +85,7 @@
     let blocks = [] as number[]
     // right now range(0, DAY / TIME_STEP) is num mins in a day / 15 which is num blocks in a day
     $: blocks = range(0, DAY / TIME_STEP).filter(block =>
-        timeInRange(offsetRange(ranges, -tzOffset), block),
+        timeInRange(offsetRanges(ranges, -tzOffset), block),
     )
 
     /** Names of all participants */
@@ -181,7 +181,7 @@
     }
 </script>
 
-<div class="flex select-none flex-col items-stretch">
+<div class="flex flex-col items-stretch select-none">
     <!-- Column headers -->
     {#if dates.length > 0}
         <div class="sticky top-0 flex">

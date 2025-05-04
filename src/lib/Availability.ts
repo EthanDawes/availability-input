@@ -1,4 +1,5 @@
-import type { DateStr } from "./timeutils.ts"
+import type { DateStr, DatetimeRange } from "./timeutils.ts"
+import { range, steppedCeil, steppedFloor, TIME_STEP } from "$lib/index.js"
 
 /** Key: the date in any parsable format. Value: array of indices to time blocks.
  * For example, if you ask for times starting at 8am and use 15 min intervals, 9:30 will be index 5  */
@@ -108,9 +109,15 @@ export function mergeServerLocal(existing: InternalAvailability, newer: Availabi
     return existing
 }
 
-export function blankAvailability(dates: DateStr[]) {
-    console.log(enforceAvailabilityValidity({}, dates))
-    return enforceAvailabilityValidity({}, dates)
+export function blankAvailability(ranges: DatetimeRange[]) {
+    return ranges.flatMap(([rangeStart, rangeStop]) =>
+        range(
+            // rangeStart and rangeStop should (although not necessarily) align with TIME_STEP boundaries.
+            steppedFloor(rangeStart, TIME_STEP),
+            steppedCeil(rangeStop, TIME_STEP),
+            TIME_STEP,
+        ),
+    )
 }
 
 export function enforceAvailabilityValidity<T extends GenericAvailability>(
