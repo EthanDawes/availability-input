@@ -68,6 +68,7 @@
         ]
     },
     "dependencies": {
+        "flowbite": "^3.1.2",
         "flowbite-svelte": "^0.48.6"
     }
 }
