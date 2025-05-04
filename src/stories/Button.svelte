@@ -1,5 +1,6 @@
 <script lang="ts">
     import "./button.css"
+    import { Tooltip } from "flowbite-svelte"
 
     interface Props {
         /** Is this the principal call to action on the page? */
@@ -27,3 +28,65 @@
 >
     {label}
 </button>
+<button
+    type="button"
+    class={["storybook-button", `storybook-button--${size}`].join(" ")}
+    class:storybook-button--primary={primary}
+    class:storybook-button--secondary={!primary}
+    style:background-color={backgroundColor}
+    onclick={onClick}
+>
+    {label}
+</button>
+<button
+    type="button"
+    class={["storybook-button", `storybook-button--${size}`].join(" ")}
+    class:storybook-button--primary={primary}
+    class:storybook-button--secondary={!primary}
+    style:background-color={backgroundColor}
+    onclick={onClick}
+>
+    {label}
+</button>
+<button
+    type="button"
+    class={["storybook-button", `storybook-button--${size}`].join(" ")}
+    class:storybook-button--primary={primary}
+    class:storybook-button--secondary={!primary}
+    style:background-color={backgroundColor}
+    onclick={onClick}
+>
+    {label}
+</button>
+<button
+    type="button"
+    class={["storybook-button", `storybook-button--${size}`].join(" ")}
+    class:storybook-button--primary={primary}
+    class:storybook-button--secondary={!primary}
+    style:background-color={backgroundColor}
+    onclick={onClick}
+>
+    {label}
+</button>
+<button
+    type="button"
+    class={["storybook-button", `storybook-button--${size}`].join(" ")}
+    class:storybook-button--primary={primary}
+    class:storybook-button--secondary={!primary}
+    style:background-color={backgroundColor}
+    onclick={onClick}
+>
+    {label}
+</button>
+<button
+    type="button"
+    class={["storybook-button", `storybook-button--${size}`].join(" ")}
+    class:storybook-button--primary={primary}
+    class:storybook-button--secondary={!primary}
+    style:background-color={backgroundColor}
+    onclick={onClick}
+>
+    {label}
+</button>
+
+<Tooltip triggeredBy=".storybook-button">Tooltip content</Tooltip>
