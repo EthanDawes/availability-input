@@ -8,7 +8,7 @@
     type UsersAvailabilityLists = Map<number, string[]>
 
     interface Props {
-        /** All inputable availability blocks along with who is available during that block. Should be in UTC time, not localized */
+        /** All inputable availability blocks along with who is available during that 15-minute block as ms since epoch. Should be in UTC time, not localized */
         availabilities: UsersAvailabilityLists
         /** The name of the user to add to the availability representation
          * @default "me"
@@ -41,19 +41,8 @@
         onHoverChange = () => {},
     }: Props = $props()
 
-    /*function groupByLocalizedDate(dates: number[], locale = undefined, options = undefined) {
-return Object.groupBy(dates, date => new Date(date).toLocaleDateString(locale, options))
-// TODO: these should be offset midnight timestamps so I cab format later
-}*/
-
-    // Must know all possible days (x axis) and times (y axis) for formatting
-
-    // TODO: rename to localized blocks: ms since epoch. In utc time, which represents time in time zone.
-    // I can then reduce into set of local midnights (x axis)
-    // I can then make a set of all possible blocks
-
-    // Set of all epoch ms timestamps representing the start of a 15-minute block within the given ranges. UTC time is set to what local time would be. */
-
+    /** Like `availabilities`, except that UTC time is what it would be in local time */
+    // Despite thinking that "just using the ranges will be more efficient", just the ranges do not account for if a range spans overnight into two days
     let localAvailability = $derived(
         new Map(
             [...availabilities].map(([block, people]) => [
@@ -62,8 +51,8 @@ return Object.groupBy(dates, date => new Date(date).toLocaleDateString(locale, o
             ]),
         ),
     )
-    // Despite thinking that "just using the ranges will be more efficient", just the ranges do not account for if a range spans overnight into two days
 
+    // Must know all possible days (x axis) and times (y axis) for formatting
     let allLocalMidnights = $derived(
         [
             ...new Set(
@@ -74,20 +63,11 @@ return Object.groupBy(dates, date => new Date(date).toLocaleDateString(locale, o
 
     /** Array of starting times in 15-minute intervals since midnight for all possible blocks. Changes with timezone */
     // Need this in addition to dateBlocks b/c must know whether to render a row (eg: monday ranges 7-10 but other days range 8-12)
-    /*let allLocalDayTimes = $derived(
-range(0, DAY, TIME_STEP).filter(block =>
-	timeInRange(offsetRanges(ranges, tzOffset), block),
-),
-)*/
-    // right now range(0, DAY / TIME_STEP) is num mins in a day / 15 which is num blocks in a day
-
     let allLocalDayTimes = $derived(
         [...new Set(localAvailability.keys().map(block => block % DAY))].sort(),
     )
 
     let allParticipants = $derived([...new Set(availabilities.values().flatMap(i => i))])
-
-    $inspect(availabilities, localAvailability, allLocalMidnights, allLocalDayTimes)
 
     // ============ SECTION: event handling ++++++++++++++++++++++++++
 
@@ -147,7 +127,7 @@ range(0, DAY, TIME_STEP).filter(block =>
                 {#if peopleAvailable}
                     <div
                         class="availability-cell flex flex-grow"
-                        data-utcDatetime={utcDatetime}
+                        data-utcdatetime={utcDatetime.getTime()}
                         style:--lightness={allParticipants.length
                             ? (1 -
                                   (peopleAvailable?.length ?? allParticipants.length) /
