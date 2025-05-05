@@ -1,6 +1,6 @@
 <script lang="ts">
     import { currentTzOffset, type DateStr, intToTime, offsetDate } from "$lib/timeutils.js"
-    import { DAY, TIME_STEP } from "$lib/units.js"
+    import { DAY, HOUR } from "$lib/units.js"
     import AvailabilityComponent from "$lib/AvailabilityTooltip.svelte"
     import { Tooltip } from "flowbite-svelte"
 
@@ -137,13 +137,13 @@ range(0, DAY, TIME_STEP).filter(block =>
         <div class="flex items-center">
             <!-- Row header -->
             <div class="relative bottom-2 w-20 pr-1 text-right leading-4">
-                {block % 2 === 0 ? intToTime(block * TIME_STEP).replace(" ", "\xa0") : " "}
+                {block % HOUR === 0 ? intToTime(block).replace(" ", "\xa0") : " "}
             </div>
             <!-- Cells -->
             {#each allLocalMidnights as localDate}
                 {@const localDatetime = block + localDate}
                 {@const utcDatetime = offsetDate(localDatetime, -tzOffset)}
-                {@const peopleAvailable = availabilities.get(localDatetime)}
+                {@const peopleAvailable = availabilities.get(utcDatetime.getTime())}
                 {#if peopleAvailable}
                     <div
                         class="availability-cell flex flex-grow"
