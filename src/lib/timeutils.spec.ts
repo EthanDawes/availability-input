@@ -62,7 +62,7 @@ describe("get week dates", () => {
         expect(getTodayWeek(someMonday)).toEqual(someWeek)
     })
 
-    it.todo("Sunday", () => {
+    it("Sunday", () => {
         expect(getTodayWeek(someSunday)).toEqual(someWeek)
     })
 })
