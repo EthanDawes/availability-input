@@ -110,13 +110,17 @@ export function mergeServerLocal(existing: InternalAvailability, newer: Availabi
 }
 
 export function blankAvailability(ranges: DatetimeRange[]) {
-    return ranges.flatMap(([rangeStart, rangeStop]) =>
-        range(
-            // rangeStart and rangeStop should (although not necessarily) align with TIME_STEP boundaries.
-            steppedFloor(rangeStart, TIME_STEP),
-            steppedCeil(rangeStop, TIME_STEP),
-            TIME_STEP,
-        ),
+    return new Map(
+        ranges
+            .flatMap(([rangeStart, rangeStop]) =>
+                range(
+                    // rangeStart and rangeStop should (although not necessarily) align with TIME_STEP boundaries.
+                    steppedFloor(rangeStart, TIME_STEP),
+                    steppedCeil(rangeStop, TIME_STEP),
+                    TIME_STEP,
+                ),
+            )
+            .map(block => [block, [] as string[]]),
     )
 }
 

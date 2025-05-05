@@ -1,19 +1,14 @@
 <script lang="ts">
-    import { type DateStr, type DatetimeRange, intToTime, offsetDate } from "$lib/timeutils.js"
+    import { currentTzOffset, type DateStr, intToTime, offsetDate } from "$lib/timeutils.js"
     import { DAY, TIME_STEP } from "$lib/units.js"
     import AvailabilityComponent from "$lib/AvailabilityTooltip.svelte"
     import { Tooltip } from "flowbite-svelte"
-
-    /** List of epoch ms timestamps. If a timestamp is present in this list, that means the user is free in that 15-minute block */
-    // Is a set instead of list to allow efficient querying and removing of specific availabilities
-    type AvailabilityList = Set<number>
 
     /** Mapping of availability block to user names */
     type UsersAvailabilityLists = Map<number, string[]>
 
     interface Props {
-        /** The availability ranges that are shown as inputs */
-        ranges: DatetimeRange[]
+        /** All inputable availability blocks along with who is available during that block */
         availabilities: UsersAvailabilityLists
         /** The name of the user to add to the availability representation
          * @default "me"
@@ -39,7 +34,7 @@
     let {
         availabilities,
         myUsername = "me",
-        tzOffset = new Date().getTimezoneOffset(),
+        tzOffset = currentTzOffset(),
         isDisabled = false,
         shouldUseWeekdays = false,
         onDataChange = () => {},
@@ -47,9 +42,9 @@
     }: Props = $props()
 
     /*function groupByLocalizedDate(dates: number[], locale = undefined, options = undefined) {
-        return Object.groupBy(dates, date => new Date(date).toLocaleDateString(locale, options))
-        // TODO: these should be offset midnight timestamps so I cab format later
-    }*/
+return Object.groupBy(dates, date => new Date(date).toLocaleDateString(locale, options))
+// TODO: these should be offset midnight timestamps so I cab format later
+}*/
 
     // Must know all possible days (x axis) and times (y axis) for formatting
 
@@ -80,10 +75,10 @@
     /** Array of starting times in 15-minute intervals since midnight for all possible blocks. Changes with timezone */
     // Need this in addition to dateBlocks b/c must know whether to render a row (eg: monday ranges 7-10 but other days range 8-12)
     /*let allLocalDayTimes = $derived(
-        range(0, DAY, TIME_STEP).filter(block =>
-            timeInRange(offsetRanges(ranges, tzOffset), block),
-        ),
-    )*/
+range(0, DAY, TIME_STEP).filter(block =>
+		timeInRange(offsetRanges(ranges, tzOffset), block),
+),
+)*/
     // right now range(0, DAY / TIME_STEP) is num mins in a day / 15 which is num blocks in a day
 
     let allLocalDayTimes = $derived(
@@ -91,6 +86,8 @@
     )
 
     let allParticipants = $derived([...new Set(availabilities.values().flatMap(i => i))])
+
+    $inspect(availabilities, localAvailability, allLocalMidnights, allLocalDayTimes)
 
     // ============ SECTION: event handling ++++++++++++++++++++++++++
 

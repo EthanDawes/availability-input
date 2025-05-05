@@ -10,12 +10,15 @@ export type DatetimeRange = [number, number]
 /** Represents [Date (as ms since epoch), block idx since midnight] */
 export type Coord = [number, number]
 
-/** convert "2:50 AM" or "15:43" to minutes since midnight */
+/** convert "2:50 AM" or "15:43" to milliseconds since midnight */
 export function timeToInt(timeString: string) {
     const [hours, minutes, ampm] = timeString.split(/[: ]/)
 
     // Calculate the total minutes since midnight
-    return (Number(hours) + Number(ampm?.toLowerCase() === "pm") * 12) * HOUR + Number(minutes)
+    return (
+        (Number(hours) + Number(ampm?.toLowerCase() === "pm") * 12) * HOUR +
+        Number(minutes) * MINUTE
+    )
 }
 
 /** Converts milliseconds since midnight to "2:50 AM" or "15:43" */
@@ -116,46 +119,41 @@ export function getTzOffset(timeZone = "UTC", date = new Date()) {
     return (tzDate.getTime() - utcDate.getTime()) * MILLISECOND
 }
 
-// get local tz offset with `new Date().getTimezoneOffset()`
+export const currentTzOffset = () => new Date().getTimezoneOffset()
 
 export const getLocalTzName = () => Intl.DateTimeFormat().resolvedOptions().timeZone
 
 export const getAllTzNames = () => Intl.supportedValuesOf("timeZone")
 
 /**
- * Arbitrary dates within one week, one for each day from Monday to Sunday in that order
- * @param tzOffset offset in minutes from UTC. Defaults to local time
- * @see getTodayWeek for dates within this week and timezone
+ * Constructs DatetimeRanges for the same interval every day in the given timezone
+ * @param dates
+ * @param times ms
+ * @param timezone minutes from UTC
  */
-export const weekdayDates = (tzOffset = new Date().getTimezoneOffset()) =>
-    [
-        new Date("2017-02-27T00:00:00.000Z"),
-        new Date("2017-02-28T00:00:00.000Z"),
-        new Date("2017-03-01T00:00:00.000Z"),
-        new Date("2017-03-02T00:00:00.000Z"),
-        new Date("2017-03-03T00:00:00.000Z"),
-        new Date("2017-03-04T00:00:00.000Z"),
-        new Date("2017-03-05T00:00:00.000Z"),
-    ].map(date => offsetDate(date, tzOffset))
-
-// Uses reasonable default for college students: 7am-10pm
-export const weekdayDateRanges = (tzOffset = new Date().getTimezoneOffset()) =>
-    weekdayDates(tzOffset).map(
-        weekdayDate =>
-            [
-                weekdayDate.getTime() * MILLISECOND + 7 * HOUR,
-                weekdayDate.getTime() * MILLISECOND + (12 + 10) * HOUR,
-            ] as DatetimeRange,
+export function constructUniformDatetimeRanges(
+    dates: Date[],
+    times: [number, number],
+    timezone = currentTzOffset(),
+) {
+    return offsetRanges(
+        dates.map(date => [date.getTime() + times[0], date.getTime() + times[1]] as DatetimeRange),
+        timezone,
     )
+}
 
-/* Adapted from https://stackoverflow.com/a/43008875 */
+/**
+ * Get the week belonging to `current` starting from monday
+ * @param [current=today] week to start
+ * @see Adapted from https://stackoverflow.com/a/43008875
+ */
 export function getTodayWeek(current?: Date) {
     current = current ?? new Date()
     current.setHours(0, 0, 0, 0)
-    var week: Date[] = []
+    const week: Date[] = []
     // Starting Monday not Sunday
     current.setDate(current.getDate() - current.getDay() + 1)
-    for (var i = 0; i < 7; i++) {
+    for (let i = 0; i < 7; i++) {
         week.push(new Date(current))
         current.setDate(current.getDate() + 1)
     }
