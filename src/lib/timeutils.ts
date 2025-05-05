@@ -3,7 +3,7 @@ import { DAY, HOUR, MILLISECOND, MINUTE, SECOND, TIME_STEP } from "./units.js"
 /** Date formatted in en-US locale, m/dd/yy. TODO: tighten this type */
 export type DateStr = `${number}/${number}/${number}` | string
 
-/** Milliseconds since epoch representing start and stop datetimes. */
+/** Milliseconds since epoch representing start and stop datetimes. In global UTC time */
 // Using ms instead of minutes b/c even though I don't need ms precision, it is more standard, won't cause issues, and will be easier if consistent
 export type DatetimeRange = [number, number]
 
@@ -126,29 +126,23 @@ export const getLocalTzName = () => Intl.DateTimeFormat().resolvedOptions().time
 export const getAllTzNames = () => Intl.supportedValuesOf("timeZone")
 
 /**
- * Constructs DatetimeRanges for the same interval every day in the given timezone
+ * Constructs DatetimeRanges for the same interval every day in the given timezone. Global UTC time
  * @param dates
  * @param times ms
- * @param timezone minutes from UTC
  */
-export function constructUniformDatetimeRanges(
-    dates: Date[],
-    times: [number, number],
-    timezone = currentTzOffset(),
-) {
-    return offsetRanges(
-        dates.map(date => [date.getTime() + times[0], date.getTime() + times[1]] as DatetimeRange),
-        timezone,
+export function constructUniformDatetimeRanges(dates: Date[], times: [number, number]) {
+    return dates.map(
+        date => [date.getTime() + times[0], date.getTime() + times[1]] as DatetimeRange,
     )
 }
 
 /**
  * Get the week belonging to `current` starting from monday
- * @param [current=today] week to start
+ * @param [current=today] week to start. Is not mutated
  * @see Adapted from https://stackoverflow.com/a/43008875
  */
 export function getTodayWeek(current?: Date) {
-    current = current ?? new Date()
+    current = current ? new Date(current) : new Date()
     current.setHours(0, 0, 0, 0)
     const week: Date[] = []
     // Starting Monday not Sunday

@@ -8,7 +8,7 @@
     type UsersAvailabilityLists = Map<number, string[]>
 
     interface Props {
-        /** All inputable availability blocks along with who is available during that block */
+        /** All inputable availability blocks along with who is available during that block. Should be in UTC time, not localized */
         availabilities: UsersAvailabilityLists
         /** The name of the user to add to the availability representation
          * @default "me"
@@ -76,7 +76,7 @@ return Object.groupBy(dates, date => new Date(date).toLocaleDateString(locale, o
     // Need this in addition to dateBlocks b/c must know whether to render a row (eg: monday ranges 7-10 but other days range 8-12)
     /*let allLocalDayTimes = $derived(
 range(0, DAY, TIME_STEP).filter(block =>
-		timeInRange(offsetRanges(ranges, tzOffset), block),
+	timeInRange(offsetRanges(ranges, tzOffset), block),
 ),
 )*/
     // right now range(0, DAY / TIME_STEP) is num mins in a day / 15 which is num blocks in a day
