@@ -6,7 +6,7 @@ import {
     timeToInt,
 } from "$lib/timeutils.js"
 import { blankAvailability } from "$lib/Availability.js"
-import { TIME_STEP } from "$lib/units.js"
+import { HOUR, TIME_STEP } from "$lib/units.js"
 
 const easternTzOffset = 240
 const someWeek = [
@@ -21,34 +21,39 @@ const someWeek = [
 const someMonday = someWeek[0] // local time
 const someSunday = someWeek[6] // local time
 const mondayMs = someMonday.getTime()
-const am7 = timeToInt("7:00 am")
-const pm10 = timeToInt("10:00 pm")
+const am7 = 7 * HOUR
+const pm10 = (10 + 12) * HOUR
+const pm730 = (7.5 + 12) * HOUR
 
 describe("time to int", () => {
     it("7:00 am", () => {
-        expect(timeToInt("7:00 am")).toBe(2.52e7)
+        expect(timeToInt("7:00 am")).toBe(am7)
     })
 
     it("7:30 pm", () => {
-        expect(timeToInt("7:30 pm")).toBe(7.02e7)
+        expect(timeToInt("7:30 pm")).toBe(pm730)
     })
 
     it("19:30", () => {
-        expect(timeToInt("19:30")).toBe(7.02e7)
+        expect(timeToInt("19:30")).toBe(pm730)
     })
 })
 
 describe("int to time", () => {
     it("7:00 am", () => {
-        expect(intToTime(2.52e7)).toBe("7:00 AM")
+        expect(intToTime(am7)).toBe("7:00 AM")
     })
 
     it("7:30 pm", () => {
-        expect(intToTime(7.02e7)).toBe("7:30 PM")
+        expect(intToTime(pm730)).toBe("7:30 PM")
     })
 
     it("19:30", () => {
-        expect(intToTime(7.02e7, true)).toBe("19:30")
+        expect(intToTime(pm730, true)).toBe("19:30")
+    })
+
+    it("12:00 pm", () => {
+        expect(intToTime(12 * HOUR)).toBe("12:00 PM")
     })
 })
 
