@@ -8,6 +8,9 @@ export type InternalAvailability = Record<DateStr, string[][]>
 export type GenericAvailability = Availability | InternalAvailability
 export type DateCompatible = number | string | Date
 
+/** Mapping of availability block to user names */
+export type AvailabilityBlockUsersMap = Map<number, string[]>
+
 export interface UserAvailability {
     availability: Availability
     username: string
@@ -132,4 +135,8 @@ export function enforceAvailabilityValidity<T extends GenericAvailability>(
         if (!(date in availability)) availability[date] = []
     }
     return availability
+}
+
+export function combineAvailability(availabilities: AvailabilityBlockUsersMap) {
+    // TODO
 }

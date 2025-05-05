@@ -11,8 +11,8 @@
         tags: ["autodocs"],
         argTypes: {},
         args: {
-            onDataChange: fn,
-            onHoverChange: fn,
+            onDataChange: fn(),
+            onHoverChange: fn(),
         },
     })
 </script>

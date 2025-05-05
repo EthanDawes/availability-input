@@ -1,15 +1,27 @@
 <script lang="ts">
-    import { currentTzOffset, type DateStr, intToTime, offsetDate } from "$lib/timeutils.js"
-    import { DAY, HOUR } from "$lib/units.js"
+    import { currentTzOffset, intToTime, offsetDate, UTCMidnight } from "$lib/timeutils.js"
+    import { DAY, HOUR, TIME_STEP } from "$lib/units.js"
     import AvailabilityComponent from "$lib/AvailabilityTooltip.svelte"
     import { Tooltip } from "flowbite-svelte"
+    import type { AvailabilityBlockUsersMap } from "$lib/Availability.js"
+    import { arrayRemoveItem } from "$lib/index.js"
 
-    /** Mapping of availability block to user names */
-    type UsersAvailabilityLists = Map<number, string[]>
+    interface HoverData {
+        /** Element that is being hovered */
+        target: HTMLElement
+        /** start global UTC datetime object of block */
+        time: Date
+        /** List of people available in that block */
+        available: string[]
+        /** List of people unavailable in that block */
+        unavailable: string[]
+    }
 
     interface Props {
         /** All inputable availability blocks along with who is available during that 15-minute block as ms since epoch. Should be in UTC time, not localized */
-        availabilities: UsersAvailabilityLists
+        // Despite thinking that "just using the ranges will be more efficient", just the ranges do not account for if a range spans overnight into two days
+        // I removed the `localAvailability` convenience map because it was unnessisary
+        availabilities: AvailabilityBlockUsersMap
         /** The name of the user to add to the availability representation
          * @default "me"
          */
@@ -25,10 +37,10 @@
         shouldUseWeekdays?: boolean
         /** Fired after the user has finished dragging. Provided with whole, current availability
          * @default no-op */
-        onDataChange?: (_: UsersAvailabilityLists) => void
+        onDataChange?: (_: AvailabilityBlockUsersMap) => void
         /** Fired when hovered cell changes (including once none are hovered)
          * @default no-op */
-        onHoverChange?: () => void
+        onHoverChange?: (_: HoverData) => void
     }
 
     let {
@@ -41,22 +53,11 @@
         onHoverChange = () => {},
     }: Props = $props()
 
-    /** Like `availabilities`, except that UTC time is what it would be in local time */
-    // Despite thinking that "just using the ranges will be more efficient", just the ranges do not account for if a range spans overnight into two days
-    let localAvailability = $derived(
-        new Map(
-            [...availabilities].map(([block, people]) => [
-                offsetDate(block, tzOffset).getTime(),
-                people,
-            ]),
-        ),
-    )
-
     // Must know all possible days (x axis) and times (y axis) for formatting
     let allLocalMidnights = $derived(
         [
             ...new Set(
-                localAvailability.keys().map(block => new Date(block).setUTCHours(0, 0, 0, 0)),
+                availabilities.keys().map(block => UTCMidnight(offsetDate(block, tzOffset))),
             ),
         ].sort(),
     )
@@ -64,23 +65,105 @@
     /** Array of starting times in 15-minute intervals since midnight for all possible blocks. Changes with timezone */
     // Need this in addition to dateBlocks b/c must know whether to render a row (eg: monday ranges 7-10 but other days range 8-12)
     let allLocalDayTimes = $derived(
-        [...new Set(localAvailability.keys().map(block => block % DAY))].sort(),
+        [
+            ...new Set(
+                availabilities.keys().map(block => offsetDate(block, tzOffset).getTime() % DAY),
+            ),
+        ].sort(),
     )
 
     let allParticipants = $derived([...new Set(availabilities.values().flatMap(i => i))])
 
     // ============ SECTION: event handling ++++++++++++++++++++++++++
 
-    // Had to implement 2 separate touch and mouse handlers (instead of using pointer handler) b/c `touch-none` prevents 2-finger panning but without it, page scrolls while selecting
-    function convertTouchEvent(ev: TouchEvent): [DateStr | undefined, number | undefined] {
-        return [undefined, undefined]
+    type globalUTCTimestamp = number
+    let dragStart: globalUTCTimestamp | undefined
+    let dragNow: globalUTCTimestamp | undefined
+    let dragState: boolean | undefined
+
+    function toggleAvailability(timestamp: globalUTCTimestamp) {
+        if (dragState == undefined) {
+            dragState = !availabilities.get(timestamp)!.length
+        }
+
+        dragNow = timestamp
     }
 
-    const handleMouseDown = (date: DateStr, timeIndex: number) => {}
+    // Had to implement 2 separate touch and mouse handlers (instead of using pointer handler) b/c `touch-none` prevents 2-finger panning but without it, page scrolls while selecting
+    function convertTouchEvent(ev: TouchEvent): globalUTCTimestamp | undefined {
+        if (ev.touches.length > 1) handlePointerUp()
+        else {
+            ev.preventDefault()
+            const target = document.elementFromPoint(
+                ev.touches[0].clientX,
+                ev.touches[0].clientY,
+            ) as HTMLElement | null
+            if (!target || !target.classList.contains("availability-cell")) return undefined
+            const utcDatetime = Number.parseInt(target.id)
+            if (!dragStart && !isDisabled) dragStart = dragNow = utcDatetime
+            return utcDatetime
+        }
+        return undefined
+    }
 
-    const handlePointerEnter = (date?: DateStr, timeIndex?: number) => {}
+    function handleMouseDown(timestamp: globalUTCTimestamp) {
+        if (isDisabled) return
+        dragStart = dragNow = timestamp
+        toggleAvailability(timestamp)
+    }
 
-    const handlePointerUp = () => {}
+    function handlePointerEnter(timestamp?: globalUTCTimestamp) {
+        if (timestamp == undefined) return
+        if (dragStart) {
+            toggleAvailability(timestamp)
+        } else {
+            onHoverChange({
+                time: new Date(timestamp),
+                available: availabilities.get(timestamp)!,
+                target: document.createElement("div"), // TODO
+                unavailable: [], // TODO
+            })
+        }
+    }
+
+    function handlePointerUp() {
+        if (dragStart) {
+            applyDragPreview()
+            onDataChange(availabilities)
+            dragStart = dragNow = dragState = undefined
+        }
+    }
+
+    /** Using dragStart, dragNow, and dragState, mark all cells within the dragged rectangle with their new respective value */
+    function applyDragPreview() {
+        if (!dragNow || !dragStart) return
+        const corners = [dragStart, dragNow]
+            .map(date => offsetDate(date, tzOffset).getTime())
+            .sort()
+        const dateRange = corners.map(UTCMidnight)
+        const timeRange = [corners[0] % DAY, corners[1] % DAY]
+        for (let day = dateRange[0]; day <= dateRange[1]; day += DAY) {
+            for (let time = timeRange[0]; time <= timeRange[1]; time += TIME_STEP) {
+                const globalDatetimeCursor = offsetDate(day + time, -tzOffset).getTime()
+                const peopleAvailable = availabilities.get(globalDatetimeCursor)
+                if (peopleAvailable !== undefined) {
+                    if (dragState) {
+                        if (!peopleAvailable.includes(myUsername)) {
+                            peopleAvailable.push(myUsername)
+                        }
+                    } else {
+                        arrayRemoveItem(peopleAvailable, myUsername)
+                    }
+                    availabilities.set(globalDatetimeCursor, [
+                        ...availabilities.get(globalDatetimeCursor)!,
+                    ])
+                }
+            }
+        }
+        console.log(availabilities)
+    }
+
+    $inspect(availabilities)
 </script>
 
 <div class="flex flex-col items-stretch select-none">
@@ -122,12 +205,12 @@
             <!-- Cells -->
             {#each allLocalMidnights as localDate}
                 {@const localDatetime = block + localDate}
-                {@const utcDatetime = offsetDate(localDatetime, -tzOffset)}
-                {@const peopleAvailable = availabilities.get(utcDatetime.getTime())}
+                {@const utcDatetime = offsetDate(localDatetime, -tzOffset).getTime()}
+                {@const peopleAvailable = availabilities.get(utcDatetime)}
                 {#if peopleAvailable}
                     <div
                         class="availability-cell flex flex-grow"
-                        data-utcdatetime={utcDatetime.getTime()}
+                        id={String(utcDatetime)}
                         style:--lightness={allParticipants.length
                             ? (1 -
                                   (peopleAvailable?.length ?? allParticipants.length) /
@@ -139,9 +222,9 @@
                         class:cursor-pointer={!isDisabled}
                         class:cursor-not-allowed={isDisabled}
                         class:available={peopleAvailable?.length}
-                        onmousedown={() => {}}
-                        onmouseenter={() => {}}
-                        ontouchmove={ev => handlePointerEnter(...convertTouchEvent(ev))}
+                        onmousedown={() => handleMouseDown(utcDatetime)}
+                        onmouseenter={() => handlePointerEnter(utcDatetime)}
+                        ontouchmove={ev => handlePointerEnter(convertTouchEvent(ev))}
                         role="cell"
                         tabindex="0"
                     ></div>

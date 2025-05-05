@@ -1,4 +1,5 @@
 import { DAY, HOUR, MILLISECOND, MINUTE, SECOND, TIME_STEP } from "./units.js"
+import type { DateCompatible } from "$lib/Availability.js"
 
 /** Date formatted in en-US locale, m/dd/yy. TODO: tighten this type */
 export type DateStr = `${number}/${number}/${number}` | string
@@ -158,4 +159,13 @@ export function minutesSinceUTCMidnight(date: Date) {
     return Math.floor(
         date.getUTCHours() * HOUR + date.getUTCMinutes() + date.getUTCSeconds() * SECOND,
     )
+}
+
+/** Computes the difference between two dates in calendar days (eg: 11:59pm and 1am the next day returns `1` even though duration is less than a day). Must be converted local time. */
+export function calcDayDiff(laterDate: DateCompatible, earlierDate: DateCompatible) {
+    return (UTCMidnight(laterDate) - UTCMidnight(earlierDate)) / DAY
+}
+
+export function UTCMidnight(date: DateCompatible) {
+    return new Date(date).setUTCHours(0, 0, 0, 0)
 }

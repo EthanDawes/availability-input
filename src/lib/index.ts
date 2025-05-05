@@ -12,6 +12,15 @@ export const steppedFloor = steppedOperation.bind(null, Math.floor)
 
 export const steppedCeil = steppedOperation.bind(null, Math.ceil)
 
+/** Serches and removes specified item from array. Mutates and returns same array! */
+export function arrayRemoveItem<T>(array: T[], item: T) {
+    const index = array.indexOf(item)
+    if (index > -1) {
+        array.splice(index, 1)
+    }
+    return array
+}
+
 export * from "./units.js"
 export * from "./timeutils.js"
 export { default as Availability } from "./Availability.svelte"

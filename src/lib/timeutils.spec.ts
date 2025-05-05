@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+    calcDayDiff,
     constructUniformDatetimeRanges,
     getTodayWeek,
     intToTime,
@@ -82,5 +83,13 @@ describe("make blank availability", () => {
         expect(availabilityKeys[1] - availabilityKeys[0]).toBe(TIME_STEP)
         expect(availabilityKeys[0]).toBe(mondayMs + am7)
         expect(availabilityKeys.at(-1)).toBe(mondayMs + pm10 - TIME_STEP)
+    })
+})
+
+describe("calculate day difference", () => {
+    it("11:59pm to 1am next day", () => {
+        const date1 = new Date("2024-01-01T23:59:00")
+        const date2 = new Date("2024-01-02T01:00:00")
+        expect(calcDayDiff(date2, date1)).toBe(1)
     })
 })
