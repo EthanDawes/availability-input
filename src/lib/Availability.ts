@@ -140,3 +140,11 @@ export function enforceAvailabilityValidity<T extends GenericAvailability>(
 export function combineAvailability(availabilities: AvailabilityBlockUsersMap) {
     // TODO
 }
+
+export function serializeAvailability(availabilities: AvailabilityBlockUsersMap) {
+    return JSON.stringify(Array.from(availabilities.entries()))
+}
+
+export function deserializeAvailability(availabilities: string) {
+    return new Map<number, string[]>(JSON.parse(availabilities))
+}
