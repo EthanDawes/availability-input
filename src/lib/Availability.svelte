@@ -140,11 +140,9 @@
     function applyDragPreview() {
         if (!dragNow || !dragStart || !preDragAvailabilities) return
         availabilities = structuredClone(preDragAvailabilities)
-        const corners = [dragStart, dragNow]
-            .map(date => offsetDate(date, tzOffset).getTime())
-            .sort()
-        const dateRange = corners.map(UTCMidnight)
-        const timeRange = [corners[0] % DAY, corners[1] % DAY]
+        const corners = [dragStart, dragNow].map(date => offsetDate(date, tzOffset).getTime())
+        const dateRange = corners.map(UTCMidnight).sort()
+        const timeRange = [corners[0] % DAY, corners[1] % DAY].sort()
         for (let day = dateRange[0]; day <= dateRange[1]; day += DAY) {
             for (let time = timeRange[0]; time <= timeRange[1]; time += TIME_STEP) {
                 const globalDatetimeCursor = offsetDate(day + time, -tzOffset).getTime()
@@ -161,8 +159,6 @@
             }
         }
     }
-
-    $inspect(availabilities)
 </script>
 
 <div class="flex flex-col items-stretch select-none">
