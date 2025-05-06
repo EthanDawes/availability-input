@@ -11,6 +11,46 @@ export type DateCompatible = number | string | Date
 /** Mapping of availability block to user names */
 export type AvailabilityBlockUsersMap = Map<number, string[]>
 
+export interface HoverData {
+    /** Element that is being hovered */
+    target: HTMLElement
+    /** start global UTC datetime object of block */
+    time: Date
+    everyone: string[]
+    /** List of people available in that block */
+    available: string[]
+    /** List of people unavailable in that block */
+    unavailable: string[]
+}
+
+export interface AvailabilityProps {
+    /** All inputable availability blocks along with who is available during that 15-minute block as ms since epoch. Should be in UTC time, not localized */
+    // Despite thinking that "just using the ranges will be more efficient", just the ranges do not account for if a range spans overnight into two days
+    // I removed the `localAvailability` convenience map because it was unnecessary
+    availabilities: AvailabilityBlockUsersMap
+    /** The name of the user to add to the availability representation
+     * @default "me"
+     */
+    myUsername?: string
+    /** UTC time - tzOffset (minutes) = Local time.
+     * @default current timezone */
+    tzOffset?: number
+    /** Whether to allow input.
+     * @default false */
+    isDisabled?: boolean
+    /** If true, only show days of week (monday, tues, etc). Useful for recurring weekly meetings. If false, also show day of month (eg 13th)
+     * @default false */
+    shouldUseWeekdays?: boolean
+    /** Fired after the user has finished dragging. Provided with whole, current availability
+     * @default no-op */
+    onDataChange?: (_: AvailabilityBlockUsersMap) => void
+    /** Fired when hovered cell changes (including once none are hovered)
+     * @default no-op */
+    onHoverChange?: (_: HoverData) => void
+    /** Will be passed to root html element. Useful for styling or targeting */
+    id?: string
+}
+
 export interface UserAvailability {
     availability: Availability
     username: string

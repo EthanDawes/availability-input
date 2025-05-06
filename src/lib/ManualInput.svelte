@@ -23,7 +23,6 @@
     import { DAY, TIME_STEP } from "./units.js"
     import { readable, writable, type Writable } from "svelte/store"
     import { Tooltip } from "flowbite-svelte"
-    import AvailabilityComponent from "./AvailabilityTooltip.svelte"
     import { createEventDispatcher } from "svelte"
 
     /** Array of [start, stop] tuples, representing minutes since epoch. Does not change to timezone */

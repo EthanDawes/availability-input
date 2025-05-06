@@ -1,46 +1,11 @@
 <script lang="ts">
     import { currentTzOffset, intToTime, offsetDate, UTCMidnight } from "$lib/timeutils.js"
     import { DAY, HOUR } from "$lib/units.js"
-    import AvailabilityComponent from "$lib/AvailabilityTooltip.svelte"
-    import { Tooltip } from "flowbite-svelte"
-    import { type AvailabilityBlockUsersMap, fillRect } from "$lib/Availability.js"
-
-    interface HoverData {
-        /** Element that is being hovered */
-        target: HTMLElement
-        /** start global UTC datetime object of block */
-        time: Date
-        /** List of people available in that block */
-        available: string[]
-        /** List of people unavailable in that block */
-        unavailable: string[]
-    }
-
-    interface Props {
-        /** All inputable availability blocks along with who is available during that 15-minute block as ms since epoch. Should be in UTC time, not localized */
-        // Despite thinking that "just using the ranges will be more efficient", just the ranges do not account for if a range spans overnight into two days
-        // I removed the `localAvailability` convenience map because it was unnessisary
-        availabilities: AvailabilityBlockUsersMap
-        /** The name of the user to add to the availability representation
-         * @default "me"
-         */
-        myUsername?: string
-        /** UTC time - tzOffset (minutes) = Local time.
-         * @default current timezone */
-        tzOffset?: number
-        /** Whether to allow input.
-         * @default false */
-        isDisabled?: boolean
-        /** If true, only show days of week (monday, tues, etc). Useful for recurring weekly meetings. If false, also show day of month (eg 13th)
-         * @default false */
-        shouldUseWeekdays?: boolean
-        /** Fired after the user has finished dragging. Provided with whole, current availability
-         * @default no-op */
-        onDataChange?: (_: AvailabilityBlockUsersMap) => void
-        /** Fired when hovered cell changes (including once none are hovered)
-         * @default no-op */
-        onHoverChange?: (_: HoverData) => void
-    }
+    import {
+        type AvailabilityBlockUsersMap,
+        type AvailabilityProps,
+        fillRect,
+    } from "$lib/Availability.js"
 
     let {
         availabilities,
@@ -50,7 +15,8 @@
         shouldUseWeekdays = false,
         onDataChange = () => {},
         onHoverChange = () => {},
-    }: Props = $props()
+        id = undefined,
+    }: AvailabilityProps = $props()
 
     // Must know all possible days (x axis) and times (y axis) for formatting
     let allLocalMidnights = $derived(
@@ -114,16 +80,18 @@
         toggleAvailability(timestamp)
     }
 
-    function handlePointerEnter(timestamp?: globalUTCTimestamp) {
+    function handlePointerEnter(target: HTMLElement, timestamp?: globalUTCTimestamp) {
         if (timestamp == undefined) return
         if (dragStart) {
             toggleAvailability(timestamp)
         } else {
+            const available = availabilities.get(timestamp)!
             onHoverChange({
                 time: new Date(timestamp),
-                available: availabilities.get(timestamp)!,
-                target: document.createElement("div"), // TODO
-                unavailable: [], // TODO
+                everyone: allParticipants,
+                available,
+                target,
+                unavailable: allParticipants.filter(person => !available.includes(person)),
             })
         }
     }
@@ -147,7 +115,10 @@
     }
 </script>
 
-<div class="flex flex-col items-stretch select-none">
+<div
+    class="flex flex-col items-stretch select-none"
+    {id}
+>
     <!-- Column headers -->
     {#if allLocalMidnights.length > 0}
         <div class="sticky top-0 flex">
@@ -201,22 +172,14 @@
                               "%"
                             : "30%"}
                         class:cursor-pointer={!isDisabled}
-                        class:cursor-not-allowed={isDisabled}
+                        class:disabled={isDisabled}
                         class:available={peopleAvailable?.length}
                         onmousedown={() => handleMouseDown(utcDatetime)}
-                        onmouseenter={() => handlePointerEnter(utcDatetime)}
-                        ontouchmove={ev => handlePointerEnter(convertTouchEvent(ev))}
+                        onmouseenter={ev => handlePointerEnter(ev.target, utcDatetime)}
+                        ontouchmove={ev => handlePointerEnter(ev.target, convertTouchEvent(ev))}
                         role="cell"
                         tabindex="0"
                     ></div>
-                    {#if allParticipants.length && peopleAvailable.length}
-                        <Tooltip class="pointer-events-none z-[1000] bg-white">
-                            <AvailabilityComponent
-                                everyone={allParticipants}
-                                available={peopleAvailable}
-                            />
-                        </Tooltip>
-                    {/if}
                 {:else}
                     <div class="h-[16px] flex-grow"></div>
                 {/if}
