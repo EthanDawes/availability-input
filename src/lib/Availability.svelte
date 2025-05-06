@@ -80,6 +80,7 @@
     let dragStart: globalUTCTimestamp | undefined
     let dragNow: globalUTCTimestamp | undefined
     let dragState: boolean | undefined
+    let preDragAvailabilities: AvailabilityBlockUsersMap | undefined
 
     function toggleAvailability(timestamp: globalUTCTimestamp) {
         if (dragState == undefined) {
@@ -87,6 +88,7 @@
         }
 
         dragNow = timestamp
+        applyDragPreview()
     }
 
     // Had to implement 2 separate touch and mouse handlers (instead of using pointer handler) b/c `touch-none` prevents 2-finger panning but without it, page scrolls while selecting
@@ -108,6 +110,7 @@
 
     function handleMouseDown(timestamp: globalUTCTimestamp) {
         if (isDisabled) return
+        preDragAvailabilities = structuredClone(availabilities)
         dragStart = dragNow = timestamp
         toggleAvailability(timestamp)
     }
@@ -128,15 +131,15 @@
 
     function handlePointerUp() {
         if (dragStart) {
-            applyDragPreview()
             onDataChange(availabilities)
-            dragStart = dragNow = dragState = undefined
+            dragStart = dragNow = dragState = preDragAvailabilities = undefined
         }
     }
 
     /** Using dragStart, dragNow, and dragState, mark all cells within the dragged rectangle with their new respective value */
     function applyDragPreview() {
-        if (!dragNow || !dragStart) return
+        if (!dragNow || !dragStart || !preDragAvailabilities) return
+        availabilities = structuredClone(preDragAvailabilities)
         const corners = [dragStart, dragNow]
             .map(date => offsetDate(date, tzOffset).getTime())
             .sort()
@@ -154,13 +157,9 @@
                     } else {
                         arrayRemoveItem(peopleAvailable, myUsername)
                     }
-                    availabilities.set(globalDatetimeCursor, [
-                        ...availabilities.get(globalDatetimeCursor)!,
-                    ])
                 }
             }
         }
-        console.log(availabilities)
     }
 
     $inspect(availabilities)
