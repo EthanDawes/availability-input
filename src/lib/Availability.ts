@@ -1,5 +1,13 @@
 import { type DateStr, type DatetimeRange, offsetDate, UTCMidnight } from "./timeutils.js"
-import { arrayRemoveItem, DAY, range, steppedCeil, steppedFloor, TIME_STEP } from "$lib/index.js"
+import {
+    arrayRemoveItem,
+    DAY,
+    numberComparator,
+    range,
+    steppedCeil,
+    steppedFloor,
+    TIME_STEP,
+} from "$lib/index.js"
 
 /** Key: the date in any parsable format. Value: array of indices to time blocks.
  * For example, if you ask for times starting at 8am and use 15 min intervals, 9:30 will be index 5  */
@@ -202,8 +210,8 @@ export function fillRect(
     fillName = "me",
     tzOffset = 0,
 ) {
-    const dateRange = corners.map(UTCMidnight).sort()
-    const timeRange = [corners[0] % DAY, corners[1] % DAY].sort()
+    const dateRange = corners.map(UTCMidnight).sort(numberComparator)
+    const timeRange = [corners[0] % DAY, corners[1] % DAY].sort(numberComparator)
     for (let day = dateRange[0]; day <= dateRange[1]; day += DAY) {
         for (let time = timeRange[0]; time <= timeRange[1]; time += TIME_STEP) {
             const globalDatetimeCursor = offsetDate(day + time, tzOffset).getTime()

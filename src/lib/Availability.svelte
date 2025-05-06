@@ -6,6 +6,7 @@
         type AvailabilityProps,
         fillRect,
     } from "$lib/Availability.js"
+    import { numberComparator } from "$lib/index.js"
 
     let {
         availabilities,
@@ -24,7 +25,7 @@
             ...new Set(
                 availabilities.keys().map(block => UTCMidnight(offsetDate(block, tzOffset))),
             ),
-        ].sort(),
+        ].sort(numberComparator),
     )
 
     /** Array of starting times in 15-minute intervals since midnight for all possible blocks. Changes with timezone */
@@ -34,7 +35,7 @@
             ...new Set(
                 availabilities.keys().map(block => offsetDate(block, tzOffset).getTime() % DAY),
             ),
-        ].sort(),
+        ].sort(numberComparator),
     )
 
     let allParticipants = $derived([...new Set(availabilities.values().flatMap(i => i))])

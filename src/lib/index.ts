@@ -21,6 +21,10 @@ export function arrayRemoveItem<T>(array: T[], item: T) {
     return array
 }
 
+export function numberComparator(a: number, b: number) {
+    return a - b
+}
+
 export * from "./units.js"
 export * from "./timeutils.js"
 export { default as Availability } from "./Availability.svelte"
