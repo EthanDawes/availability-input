@@ -19,10 +19,16 @@
     })
 
     const todayWeek = getTodayWeek()
+    const today = new Date().setHours(0, 0, 0, 0)
 
     const normalBlankAvailability = blankAvailability(
         constructUniformDatetimeRanges(todayWeek, [7 * HOUR, timeToInt("10:00 pm")]),
     )
+
+    // const overnightAvailability = blankAvailability(
+    //     constructUniformDatetimeRanges(todayWeek, [timeToInt("10:00 pm"), 1 * HOUR]),
+    // )
+    const overnightAvailability = blankAvailability([[today - HOUR, today + HOUR]])
 
     const normalFilledAvailability = structuredClone(normalBlankAvailability)
     fillRect(
@@ -61,6 +67,13 @@
     name="Multiple"
     args={{
         availabilities: multiFilledAvailability,
+    }}
+/>
+
+<Story
+    name="Overnight"
+    args={{
+        availabilities: overnightAvailability,
     }}
 />
 
