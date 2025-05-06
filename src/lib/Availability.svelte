@@ -1,10 +1,9 @@
 <script lang="ts">
     import { currentTzOffset, intToTime, offsetDate, UTCMidnight } from "$lib/timeutils.js"
-    import { DAY, HOUR, TIME_STEP } from "$lib/units.js"
+    import { DAY, HOUR } from "$lib/units.js"
     import AvailabilityComponent from "$lib/AvailabilityTooltip.svelte"
     import { Tooltip } from "flowbite-svelte"
-    import type { AvailabilityBlockUsersMap } from "$lib/Availability.js"
-    import { arrayRemoveItem } from "$lib/index.js"
+    import { type AvailabilityBlockUsersMap, fillRect } from "$lib/Availability.js"
 
     interface HoverData {
         /** Element that is being hovered */
@@ -140,24 +139,11 @@
     function applyDragPreview() {
         if (!dragNow || !dragStart || !preDragAvailabilities) return
         availabilities = structuredClone(preDragAvailabilities)
-        const corners = [dragStart, dragNow].map(date => offsetDate(date, tzOffset).getTime())
-        const dateRange = corners.map(UTCMidnight).sort()
-        const timeRange = [corners[0] % DAY, corners[1] % DAY].sort()
-        for (let day = dateRange[0]; day <= dateRange[1]; day += DAY) {
-            for (let time = timeRange[0]; time <= timeRange[1]; time += TIME_STEP) {
-                const globalDatetimeCursor = offsetDate(day + time, -tzOffset).getTime()
-                const peopleAvailable = availabilities.get(globalDatetimeCursor)
-                if (peopleAvailable !== undefined) {
-                    if (dragState) {
-                        if (!peopleAvailable.includes(myUsername)) {
-                            peopleAvailable.push(myUsername)
-                        }
-                    } else {
-                        arrayRemoveItem(peopleAvailable, myUsername)
-                    }
-                }
-            }
-        }
+        const corners = [dragStart, dragNow].map(date => offsetDate(date, tzOffset).getTime()) as [
+            number,
+            number,
+        ]
+        fillRect(availabilities, corners, !!dragState, myUsername, -tzOffset)
     }
 </script>
 
