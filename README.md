@@ -26,7 +26,7 @@ Add to your project with `npm i availability-input` ([view on npm](https://www.n
 ```
 Props are documented on the [AvailabilityProps](https://github.com/EthanDawes/availability-input/blob/main/src/lib/availability.ts) interface
 
-For more examples, view the [Storybook files]("https://github.com/EthanDawes/availability-input/tree/main/src/stories")
+For more examples, view the [Storybook files](https://github.com/EthanDawes/availability-input/tree/main/src/stories)
 
 ### Import the styles
 **Tailwind**
