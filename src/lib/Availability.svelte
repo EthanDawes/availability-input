@@ -1,6 +1,6 @@
 <script lang="ts">
     import { currentTzOffset, intToTime, offsetDate, UTCMidnight } from "$lib/timeutils.js"
-    import { DAY, HOUR } from "$lib/units.js"
+    import { DAY, HOUR, TIME_STEP } from "$lib/units.js"
     import {
         type AvailabilityBlockUsersMap,
         type AvailabilityProps,
@@ -149,7 +149,7 @@
         </div>
     {/if}
     <!-- Rows -->
-    {#each allLocalDayTimes as block}
+    {#each allLocalDayTimes as block, idx}
         <div class="flex items-center">
             <!-- Row header -->
             <div class="relative bottom-2 w-20 pr-1 text-right leading-4">
@@ -186,6 +186,15 @@
                 {/if}
             {/each}
         </div>
+        {@const nxtBlockDne = allLocalDayTimes[idx + 1] - block > TIME_STEP}
+        {#if nxtBlockDne}
+            <div class="mb-4 flex items-center">
+                <!-- Row header -->
+                <div class="relative bottom-2 w-20 pr-1 text-right leading-4">
+                    {intToTime(block + TIME_STEP).replace(" ", "\xa0")}
+                </div>
+            </div>
+        {/if}
     {/each}
 </div>
 <svelte:window on:pointerup={handlePointerUp} />
