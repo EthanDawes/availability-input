@@ -2,6 +2,11 @@
     "name": "availability-input",
     "version": "1.0.1",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/EthanDawes/availability-input"
+    },
+    "homepage": "https://ethandawes.github.io/availability-input/",
     "scripts": {
         "dev": "vite dev",
         "build": "vite build && npm run prepack",
