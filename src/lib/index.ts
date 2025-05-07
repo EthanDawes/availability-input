@@ -28,4 +28,3 @@ export function numberComparator(a: number, b: number) {
 export * from "./units.js"
 export * from "./timeutils.js"
 export { default as Availability } from "./Availability.svelte"
-export { default as ManualInput } from "./ManualInput.svelte"

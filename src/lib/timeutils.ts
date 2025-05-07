@@ -1,15 +1,9 @@
-import { DAY, HOUR, MILLISECOND, MINUTE, TIME_STEP } from "./units.js"
+import { HOUR, MINUTE } from "./units.js"
 import type { DateCompatible } from "$lib/Availability.js"
-
-/** Date formatted in en-US locale, m/dd/yy. TODO: tighten this type */
-export type DateStr = `${number}/${number}/${number}` | string
 
 /** Milliseconds since epoch representing start and stop datetimes. In global UTC time */
 // Using ms instead of minutes b/c even though I don't need ms precision, it is more standard, won't cause issues, and will be easier if consistent
 export type DatetimeRange = [number, number]
-
-/** Represents [Date (as ms since epoch), block idx since midnight] */
-export type Coord = [number, number]
 
 /** convert "2:50 AM" or "15:43" to milliseconds since midnight */
 export function timeToInt(timeString: string) {
@@ -32,64 +26,6 @@ export function intToTime(midnightOffset: number, military = false) {
     return `${hours}:${String(minutes).padStart(2, "0")}` + (military ? "" : isPM ? " PM" : " AM")
 }
 
-/** Milliseconds since epoch for date string */
-export const dateStrToEpoch = (dateStr: string) => new Date(dateStr).getTime()
-
-/** Converts a date to the format yyyy-mm-dd, regardless of locale or timezone. Not displayed, used internally */
-export function canonicalDateStr(date: Date) {
-    return date.toISOString().substring(0, 10) as DateStr // Remove the time component
-}
-
-/**
- * Returns whether `target` block index is within the time ranges specified by `ranges`. Works even if ranges span multiple days
- * @param ranges minutes since epoch [datetime start, datetime stop]
- * @param target index of 15-minute block since midnight
- */
-export function timeInRange(ranges: DatetimeRange[], target: number) {
-    target *= TIME_STEP
-    return ranges.some(([rangeStart, rangeEnd]) => {
-        console.assert(rangeEnd > rangeStart)
-        // Convert to minutes since day start
-        rangeStart %= DAY
-        rangeEnd %= DAY
-        const isDisjoint = rangeEnd < rangeStart // AKA spans multiple days
-        return isDisjoint
-            ? target <= rangeEnd || target >= rangeStart
-            : target >= rangeStart && target <= rangeEnd
-    })
-}
-
-/** Checks if `target` is in any of the ranges
- * @param ranges ranges in minutes since epoch of format [start, stop]
- * @param target minutes since epoch
- */
-export function datetimeInRange(ranges: DatetimeRange[], target: Date | number) {
-    if (target instanceof Date) target = target.getTime() * MILLISECOND
-    // end time is excluded so last cell is labeled but extra row not made (issue #95)
-    // @ts-ignore `target` is guaranteed to be a number here
-    return ranges.some(([rangeStart, rangeEnd]) => target < rangeEnd && target >= rangeStart)
-}
-
-/** Convert a list of [start, stop] ranges (minutes since epoch) to unique dates they cover. Preserves order */
-export function rangesToDate(ranges: DatetimeRange[]) {
-    return ranges
-        .flat()
-        .reduce((acc, cur) => {
-            cur = Math.floor(cur / DAY) * DAY // Set time to midnight
-            if (!acc.includes(cur)) acc.push(cur)
-            return acc
-        }, [] as number[])
-        .map(timestamp => new Date(timestamp / MILLISECOND))
-}
-
-/** Add offset in minutes to a `Coord`, return copy */
-export function offsetDatetime(coord: Coord, offsetMin: number) {
-    const [dateMs, blockIdx] = coord
-    const sumMin = dateMs * MILLISECOND + blockIdx * TIME_STEP + offsetMin
-    const DAYS_TO_MS = DAY / MILLISECOND
-    return [Math.floor(sumMin / DAY) * DAYS_TO_MS, (sumMin % DAY) * DAYS_TO_MS] as Coord
-}
-
 /** Add the specified number of minutes to `date` copy & return it
  * @param date if number, will assume milliseconds
  * @param offsetMin minutes to add
@@ -99,17 +35,6 @@ export function offsetDate(date: Date | string | number, offsetMin: number) {
     return new Date(dateObj.getTime() - offsetMin * MINUTE)
 }
 
-/** Offsets all provided ranges by specified offset
- * @param ranges list of [start, stop] ranges (ms since epoch)
- * @param offsetMin minutes to add
- */
-export function offsetRanges(ranges: DatetimeRange[], offsetMin: number) {
-    return ranges.map(
-        range =>
-            range.map(timestamp => offsetDate(timestamp, offsetMin).getTime()) as DatetimeRange,
-    )
-}
-
 /**
  * @return A timezone offset in minutes given a timezone name
  * @see https://stackoverflow.com/a/68593283
@@ -117,7 +42,7 @@ export function offsetRanges(ranges: DatetimeRange[], offsetMin: number) {
 export function getTzOffset(timeZone = "UTC", date = new Date()) {
     const utcDate = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }))
     const tzDate = new Date(date.toLocaleString("en-US", { timeZone }))
-    return (tzDate.getTime() - utcDate.getTime()) * MILLISECOND
+    return tzDate.getTime() - utcDate.getTime()
 }
 
 export const currentTzOffset = () => new Date().getTimezoneOffset()
