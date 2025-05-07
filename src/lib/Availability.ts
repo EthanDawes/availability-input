@@ -192,7 +192,7 @@ export function combineAvailability(availabilities: AvailabilityBlockUsersMap[])
             acc.set(block, [...new Set([...existingUsers, ...users])])
         })
         return acc
-    })
+    }, new Map() as AvailabilityBlockUsersMap)
 }
 
 export function serializeAvailability(availabilities: AvailabilityBlockUsersMap) {

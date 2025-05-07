@@ -28,7 +28,7 @@
     // const overnightAvailability = blankAvailability(
     //     constructUniformDatetimeRanges(todayWeek, [timeToInt("10:00 pm"), 1 * HOUR]),
     // )
-    const overnightAvailability = blankAvailability([[today - HOUR, today + HOUR]])
+    export const overnightAvailability = blankAvailability([[today - HOUR, today + HOUR]])
 
     const normalFilledAvailability = structuredClone(normalBlankAvailability)
     fillRect(
