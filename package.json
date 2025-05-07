@@ -1,6 +1,7 @@
 {
-    "name": "availability",
-    "version": "0.0.1",
+    "name": "availability-input",
+    "version": "1.0.0",
+    "license": "MIT",
     "scripts": {
         "dev": "vite dev",
         "build": "vite build && npm run prepack",
