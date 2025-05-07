@@ -1,5 +1,5 @@
 import { HOUR, MINUTE } from "./units.js"
-import type { DateCompatible } from "$lib/Availability.js"
+import type { DateCompatible } from "$lib/availability.js"
 
 /** Milliseconds since epoch representing start and stop datetimes. In global UTC time */
 // Using ms instead of minutes b/c even though I don't need ms precision, it is more standard, won't cause issues, and will be easier if consistent

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { constructUniformDatetimeRanges } from "$lib/timeutils.js"
-import { blankAvailability } from "$lib/Availability.js"
+import { blankAvailability } from "$lib/availability.js"
 import { HOUR, TIME_STEP } from "$lib/units.js"
 import { am7, mondayMs, pm10, someMonday } from "$lib/testing_common.js"
 

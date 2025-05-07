@@ -5,7 +5,7 @@
         type AvailabilityBlockUsersMap,
         type AvailabilityProps,
         fillRect,
-    } from "$lib/Availability.js"
+    } from "$lib/availability.js"
     import { numberComparator } from "$lib/index.js"
 
     let {

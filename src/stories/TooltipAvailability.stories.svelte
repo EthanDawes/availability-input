@@ -3,7 +3,7 @@
     import TooltipAvailability from "./TooltipAvailability.svelte"
     import { fn } from "@storybook/test"
     import { multiFilledAvailability, overnightAvailability } from "./Availability.stories.svelte"
-    import { combineAvailability } from "$lib/Availability.js"
+    import { combineAvailability } from "$lib/availability.ts"
 
     // More on how to set up stories at: https://storybook.js.org/docs/writing-stories
     const { Story } = defineMeta({

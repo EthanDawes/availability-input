@@ -2,7 +2,7 @@
     import { defineMeta } from "@storybook/addon-svelte-csf"
     import Availability from "$lib/Availability.svelte"
     import { fn } from "@storybook/test"
-    import { blankAvailability, fillRect } from "$lib/Availability.js"
+    import { blankAvailability, fillRect } from "$lib/availability.ts"
     import { constructUniformDatetimeRanges, getTodayWeek, timeToInt } from "$lib/timeutils.js"
     import { HOUR } from "$lib/index.js"
 
