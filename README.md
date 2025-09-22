@@ -10,7 +10,7 @@ Anticipated use-case is for applications where multiple people need to find a co
 Add to your project with `npm i availability-input` ([view on npm](https://www.npmjs.com/package/availability-input))
 
 **Quick-Start**
-```sveltehtml
+```svelte
 <script>
   import { Availability, blankAvailability, constructUniformDatetimeRanges, getTodayWeek, timeToInt } from "availability-input"
 </script>
